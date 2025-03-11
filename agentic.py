@@ -5,20 +5,32 @@ import uuid
 from consertations_handling import agents_conv_history, inserting_agent_chat_buffer, monolog, get_best_worker_response
 
 manager_system_prompt = """
-You are an ESG specialist reviewing an AI-generated response. Evaluate the response based on:
-1. Relevance to the user's question.
-2. Completeness in covering key ESG factors.
-3. Accuracy based on the extracted BRSR report context.
+Role: ESG Specialist with 10 Years of Experience – (Manager)
 
-For each evaluation, assign a score from 1 to 10 and determine if the overall response is satisfactory. 
+##Purpose & Scope:
+You are the Manager Agent responsible for reviewing and evaluating the AI-generated (worker) response from Dana.
+Your evaluation must focus on the following criteria:
+-Relevance: How well does the response address the user’s query?
+-Completeness: Does the response cover key ESG factors as per the BRSR framework?
+-Accuracy: Is the extracted information correct and properly cited from the reports?
 
+##Response Format:
 Return your evaluation strictly in JSON format with the following keys:
-- "satisfied": "yes" or "no" (set to "yes" if the overall score is 7 or above; otherwise "no").
-- "score": The overall numeric score (from 1 to 10).
-- "reason": A brief explanation detailing why the response did or did not meet the criteria.
-- "edited_prompt": A revised version of the prompt with suggestions for the worker agent to generate an improved answer.
+"satisfied": Use "yes" if the overall score is 7 or above, otherwise "no".
+"score": A numeric score from 1 to 10 reflecting your overall evaluation.
+"reason": A brief explanation detailing why the response did or did not meet the criteria.
+"edited_prompt": A revised version of the worker prompt with suggestions for improvement.
+"query_for_user": A string containing the exact query you want to ask the user for further clarification.
+"ask_user?": Use "yes" if you want to ask the user for further clarification based on the worker’s response, or "no" if no further user clarification is needed.
 
-Your response must be valid JSON containing only these keys.
+##Additional Guidelines:
+-Ensure your response is entirely in valid JSON with the specified keys.
+-Clearly indicate that you are interacting with the worker (Dana) who has generated the report data, and provide guidance for any improvements necessary.
+-Keep in mind that your evaluation helps decide which responses are shown to the user programmatically based on the "satisfied" and "score" keys.
+
+###Extra Clarification Requirement: If the worker’s response indicates that additional information is needed—which can only be provided by the user—mark the response as "satisfied", set "ask_user?" to "yes", and use the "query_for_user" key to state exactly what further information is required from the user.
+
+###Manager-to-User Interaction: When necessary, do not assume or fabricate additional instructions for the worker agent. Instead, use the "query_for_user" key to state the query for the user, and set "ask_user?" to "yes" if you want the user to provide further clarification. Otherwise, set "ask_user?" to "no".
 """
 
 # Azure AI Search configuration
@@ -62,6 +74,9 @@ def manager(client, deployment, user_prompt, provided_conversation_history, max_
         agent_score = agent_response["score"]
         agent_reason = agent_response["reason"]
         agent_edited_prompt = agent_response["edited_prompt"]
+        ask_user = agent_response["ask_user?"]
+
+        print(f"wanna contact user?{ask_user}")
 
         c+=1
         print(f"{c}th iteration")
@@ -70,6 +85,10 @@ def manager(client, deployment, user_prompt, provided_conversation_history, max_
             monolog(agents_conversation_history)
 
             worker_response = get_best_worker_response(agents_conversation_history)
+            return worker_response, c, context_chunks
+
+        elif ask_user == "yes":
+            worker_response = agent_response["query_for_user"]
             return worker_response, c, context_chunks
 
         elif agent_decision == "yes":

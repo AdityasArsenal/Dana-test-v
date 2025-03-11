@@ -7,7 +7,6 @@ import uuid
 from datetime import datetime
 from pymongo import MongoClient
 from typing import Optional
-import uvicorn
 
 # Load environment variables
 load_dotenv(override=False)

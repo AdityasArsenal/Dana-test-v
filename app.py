@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import uuid
 from pymongo import MongoClient
 from typing import Optional
-import uvicorn
 
 from consertations_handling import conv_history, inserting_chat_buffer
 from agentic import manager
