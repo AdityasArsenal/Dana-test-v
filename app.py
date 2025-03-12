@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import os
-from openai import AzureOpenAI
 from dotenv import load_dotenv
 import uuid
 from pymongo import MongoClient
 from typing import Optional
+from openai import AzureOpenAI
+import os
+import uvicorn
 
 from consertations_handling import conv_history, inserting_chat_buffer
 from agentic import manager
