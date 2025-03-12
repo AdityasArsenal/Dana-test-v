@@ -39,9 +39,10 @@ def agentic_flow(user_prompt,conversation_id):
     max_iterations = 3
     
     provided_conversation_history = conv_history(conversation_id, collection, chat_history_retrieval_limit)
+    agents_conversation_id = None
 
     print(f"🟢  USER : {user_prompt}")
-    final_response, iteratations, context_chunks =  manager(client, deployment, user_prompt, provided_conversation_history, max_iterations, collection, chat_history_retrieval_limit)
+    final_response, iteratations, context_chunks =  manager(client, deployment, user_prompt, provided_conversation_history, max_iterations, collection, chat_history_retrieval_limit, agents_conversation_id, internally=False)
 
     #print(f"🟢{iteratations} times the worker was asked to improve the response")
     #print(f"🔵chunks used:  {context_chunks}")

@@ -55,11 +55,15 @@ split the give question into parts and add them as a list in the
 ##Response Format:
 Return your evaluation strictly in JSON format with the following keys:
 
+"final_response": if you have conversation between you and worker agent, that means you have already contacted the worker agent and you have all sub-questions and the answers to create response for the user.
+"talked_to_worker?": use "yes" if you have the convertation history, else if you don't have any convertation with the worker agent say "no"
+"alternate_response": A response created with available data.
+
 "use_worker?":Use "yes" if you need worker's help, else if you already have the answer in Previous conversations between you and worker agent say "no"
 "number_of_sub_questions": The total number of the questions.
 "list_of_sub_questions": A python list of questions.
 
-"edited_prompt": A revised version of the worker prompt with suggestions for improvement.
+
 "query_for_user": A string containing the exact query you want to ask the user for further clarification.
 "ask_user?": Use "yes" if you want to ask the user for further clarification based on the worker’s response, or "no" if no further user clarification is needed.
 """
@@ -68,62 +72,123 @@ azure_search_endpoint = os.getenv("AZURE_AI_SEARCH_ENDPOINT")
 azure_search_index = os.getenv("AZURE_AI_SEARCH_INDEX")
 azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
 
-def manager(client, deployment, user_prompt, provided_conversation_history, max_iterations, collection, chat_history_retrieval_limit):   
 
-    agents_conversation_id = str(uuid.uuid4())
-    worker_response = "This is a hard coded message if your seeing this then it means haven't contacted the worket agent yet"
+def manager(client, deployment, user_prompt, provided_conversation_history, max_iterations, collection, chat_history_retrieval_limit, agents_conversation_id,internally):   
     
-    agents_conversation_history = agents_conv_history(agents_conversation_id, collection, chat_history_retrieval_limit)
-    
-    completion = client.chat.completions.create(
-        model=deployment,
-        messages=[
-            {"role": "system", "content": manager_system_prompt},
-            {"role": "user", "content": f"Previous conversation between user and you: {provided_conversation_history},\nMy question: {user_prompt}"},
-            {"role": "assistant", "content": f"Previous conversation between you and worker agent: {agents_conversation_history},\nassistance response: {worker_response}"}
-        ],
-        max_tokens=800,
-        temperature=0.7,
-        top_p=0.95,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop=None
-    )
+    if agents_conversation_id is None:
+        agents_conversation_id = str(uuid.uuid4())
+        agents_conversation_history = agents_conv_history(agents_conversation_id, collection, chat_history_retrieval_limit)
+        
+        completion = client.chat.completions.create(
+            model=deployment,
+            messages=[
+                {"role": "system", "content": manager_system_prompt},
+                {"role": "user", "content": f"Previous conversation between user and you: {provided_conversation_history},\nMy question: {user_prompt}"},
+                {"role": "assistant", "content": f"Previous conversation between you and worker agent: {agents_conversation_history}"}
+            ],
+            max_tokens=800,
+            temperature=0.7,
+            top_p=0.95,
+            frequency_penalty=0,
+            presence_penalty=0,
+            stop=None
+        )
 
-    manager_json_output = completion.choices[0].message.content
-    #print(f"manager op : {manager_json_output}")
+        manager_json_output = completion.choices[0].message.content
+        #print(f"manager op : {manager_json_output}")
 
-    if "```" in manager_json_output:
-        manager_json_output = manager_json_output.replace("```json","")
-        manager_json_output = manager_json_output.replace("```","")
+        if "```" in manager_json_output:
+            manager_json_output = manager_json_output.replace("```json","")
+            manager_json_output = manager_json_output.replace("```","")
 
-    agent_response = json.loads(manager_json_output) # Parse the JSON response ecplicitly asked
-    #print(f"agent_decision =------------={agent_decision}")
+        agent_response = json.loads(manager_json_output) # Parse the JSON response ecplicitly asked
+        ask_user = agent_response["ask_user?"]
 
-    ask_user = agent_response["ask_user?"]
+        use_worker = agent_response["use_worker?"]
+        number_of_sub_questions = agent_response["number_of_sub_questions"]
+        list_of_sub_questions =agent_response["list_of_sub_questions"]
+        final_response = agent_response["final_response"]
 
-    use_worker = agent_response["use_worker?"]
-    number_of_sub_questions = agent_response["number_of_sub_questions"]
-    list_of_sub_questions =agent_response["list_of_sub_questions"]
+        print(f"wanna contact user?{ask_user}")
 
-    print(f"wanna contact user?{ask_user}")
+        if use_worker == "yes":
+            context_chunks = []
+            for i in range(number_of_sub_questions):
+                worker_response,context_chunk =  worker(client, deployment, list_of_sub_questions[i], agents_conversation_history, azure_search_endpoint, azure_search_index, azure_search_api_key)
+                inserting_agent_chat_buffer(agents_conversation_id, collection, list_of_sub_questions[i], worker_response, context_chunks)# chuncks used by worker agent
+                
+                context_chunks.append(context_chunk)
+                print(f"{i}th iteration")
 
-    if use_worker == "yes":
-        for i in range(number_of_sub_questions):
-            worker_response,context_chunks =  worker(client, deployment, list_of_sub_questions[i], agents_conversation_history, azure_search_endpoint, azure_search_index, azure_search_api_key)
-            inserting_agent_chat_buffer(agents_conversation_id, collection, list_of_sub_questions[i], worker_response, context_chunks)# chuncks used by worker agent
+                if i == max_iterations:
+                    print("THE ITERATION ENDED BECAUSE : Max iterations reached")
+                    break
             
-            print(f"{i}th iteration")
+            final_response =  manager(client, deployment, user_prompt, provided_conversation_history, max_iterations, collection, chat_history_retrieval_limit,agents_conversation_id, internally=True)
+            return final_response , i, context_chunks
 
-            if i == max_iterations:
-                print("THE ITERATION ENDED BECAUSE : Max iterations reached")
-                break
+        elif ask_user == "yes":
+            final_response = agent_response["query_for_user"]
+            return final_response, 0 , context_chunks
+    else:
+        agents_conversation_history = agents_conv_history(agents_conversation_id, collection, chat_history_retrieval_limit)
+        completion = client.chat.completions.create(
+            model=deployment,
+            messages=[
+                {"role": "system", "content": manager_system_prompt},
+                {"role": "user", "content": f"Previous conversation between user and you: {provided_conversation_history},\nMy question: {user_prompt}"},
+                {"role": "assistant", "content": f"Previous conversation between you and worker agent: {agents_conversation_history}"}
+            ],
+            max_tokens=800,
+            temperature=0.7,
+            top_p=0.95,
+            frequency_penalty=0,
+            presence_penalty=0,
+            stop=None
+        )
+
+        manager_json_output = completion.choices[0].message.content
+        #print(f"manager op : {manager_json_output}")
+
+        if "```" in manager_json_output:
+            manager_json_output = manager_json_output.replace("```json","")
+            manager_json_output = manager_json_output.replace("```","")
+
+        agent_response = json.loads(manager_json_output) # Parse the JSON response ecplicitly asked
+        #print(f"agent_decision =------------={agent_decision}")
+
+        ask_user = agent_response["ask_user?"]
+
+        use_worker = agent_response["use_worker?"]
+        number_of_sub_questions = agent_response["number_of_sub_questions"]
+        list_of_sub_questions =agent_response["list_of_sub_questions"]
+        talked_to_worker = agent_response["talked_to_worker?"]
+
+        print(f"wanna contact user?{ask_user}")
+
+        if use_worker =="no":
+            final_response = agent_response["final_response"]
+            return final_response
+
+        if talked_to_worker == "yes":
+            alternate_response = agent_response["alternate_response"]
+            return alternate_response
+        
+        elif talked_to_worker == "no":
+            for i in range(number_of_sub_questions):
+                worker_response,context_chunks =  worker(client, deployment, list_of_sub_questions[i], agents_conversation_history, azure_search_endpoint, azure_search_index, azure_search_api_key)
+                inserting_agent_chat_buffer(agents_conversation_id, collection, list_of_sub_questions[i], worker_response, context_chunks)# chuncks used by worker agent
+                
+                print(f"{i}th iteration")
+
+                if i == 5:
+                    print("THE ITERATION ENDED BECAUSE : Max iterations reached")
+                    break
             
-        return 
+            manager(client, deployment, user_prompt, provided_conversation_history, max_iterations, collection, chat_history_retrieval_limit,agents_conversation_id, internally=True)
+            return 
 
-    elif ask_user == "yes":
-        worker_response = agent_response["query_for_user"]
-        return worker_response, 0 , context_chunks
+        
 
 
 

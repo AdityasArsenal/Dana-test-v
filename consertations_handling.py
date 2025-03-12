@@ -47,7 +47,7 @@ def agents_conv_history(conversation_id, collection, chat_history_retrieval_limi
         manager_agent_message = doc.get("sub_question", "")
         worker_agent_message = doc.get("worker_response", "")
         provided_conversation_history.append({"role": "manager_agent", "content": f"subquestion = {manager_agent_message}"})
-        provided_conversation_history.append({"role": "worker_agent", "content": f"answer {worker_agent_message}"})
+        provided_conversation_history.append({"role": "worker_agent", "content": f"answer ={worker_agent_message}"})
 
     return provided_conversation_history
 
