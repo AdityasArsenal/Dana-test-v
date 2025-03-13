@@ -5,7 +5,7 @@ import uuid
 from consertations_handling import agents_conv_history, inserting_agent_chat_buffer, monolog, get_best_worker_response
 
 director_system_prompt = """
-say this director speasking before you answer
+always say this director speasking before you answer
 you have all the data you need to give the response in the Previous conversation between you and worker agent.
 """
 
@@ -15,7 +15,7 @@ manager_system_prompt = """
 ##Keep in Mind:
 -split the give user query into sub-questions, so that the worker agent under you can answer each question.One at a time.
 -The worker agent has BRSR and Sustainability Report in the vector searchable Database.
--Below is the contents of those reports, I need you to generate sub-questions accordingly.
+-Below is the contents of those reports, I need you to generate sub-questions thinking that the worker agent will have answers to the following topics.
 
 ##companies in the Data-Base
 1.Hindustan Petroleum Corporation Limited(HPCL)
@@ -145,6 +145,18 @@ Return your evaluation strictly in JSON format with the following keys:
 
 """
 
+manager_system_prompt_O = """
+#Role - Role: ESG Specialist with 10 Years of Experience - (Manager Agent)
+
+##Keep in Mind:
+-split the give user query into sub-questions, so that the worker agent under you can answer each question.One at a time.
+-The worker agent has BRSR and Sustainability Report in the vector searchable Database.
+
+##Response Format in json
+Return your evaluation strictly in JSON format with the following keys:
+"list_of_sub_questions": A python list of sub-questions.
+"""
+
 # Azure AI Search configuration
 azure_search_endpoint = os.getenv("AZURE_AI_SEARCH_ENDPOINT")
 azure_search_index = os.getenv("AZURE_AI_SEARCH_INDEX")
@@ -162,7 +174,8 @@ def manager(
     context_chunks,
     agents_conversation_id,
 ):   
-
+    print("MMMMMMM")
+    print(f"⚪{azure_search_index}")
     agents_conversation_id = str(uuid.uuid4())
     agents_conversation_history = agents_conv_history(agents_conversation_id, collection, chat_history_retrieval_limit)
     
@@ -187,21 +200,17 @@ def manager(
         manager_json_output = manager_json_output.replace("```","")
     agent_response = json.loads(manager_json_output) # Parse the JSON response ecplicitly asked
     list_of_sub_questions =agent_response["list_of_sub_questions"]
-    print("============================")
-    
-    print(list_of_sub_questions)
-    print("============================")
-
+    print(f"number of sub-questions {len(list_of_sub_questions)}")
     context_chunks = []
     i = 0
+
     for sub_question in list_of_sub_questions:
         i += 1
-
         worker_response, context_chunk =  worker(client, deployment, sub_question, agents_conversation_history, azure_search_endpoint, azure_search_index, azure_search_api_key)
         inserting_agent_chat_buffer(agents_conversation_id, collection, sub_question, worker_response, context_chunks)# chuncks used by worker agent
 
         context_chunks.append(context_chunk)
-        print(f"{i}th iteration")
+        print(f"{i}th {sub_question}")
 
         # if i == max_iterations:
         #     print("THE ITERATION ENDED BECAUSE : Max iterations reached")
@@ -233,7 +242,7 @@ def director(
     context_chunks,
     agents_conversation_id,
 ):
-
+    print("DDDD")
     agents_conversation_history = agents_conv_history(agents_conversation_id, collection, chat_history_retrieval_limit)
     completion = client.chat.completions.create(
         model=deployment,
@@ -251,6 +260,7 @@ def director(
     )
 
     direcotr_response = completion.choices[0].message.content
+    monolog(agents_conversation_history)
     return direcotr_response
 
 
