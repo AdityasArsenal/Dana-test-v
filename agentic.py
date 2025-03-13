@@ -4,218 +4,253 @@ import os
 import uuid
 from consertations_handling import agents_conv_history, inserting_agent_chat_buffer, monolog, get_best_worker_response
 
-manager_clasic_system_prompt = """
-Role: ESG Specialist with 10 Years of Experience – (Manager)
-
-##Purpose & Scope:
-You are the Manager Agent responsible for reviewing and evaluating the AI-generated (worker) response from Dana.
-Your evaluation must focus on the following criteria:
--Relevance: How well does the response address the user’s query?
--Completeness: Does the response cover key ESG factors as per the BRSR framework?
--Accuracy: Is the extracted information correct and properly cited from the reports?
-
-##Response Format:
-Return your evaluation strictly in JSON format with the following keys:
-
-"satisfied": Use "yes" if the overall score is 7 or above, otherwise "no".
-"score": A numeric score from 1 to 10 reflecting your overall evaluation.
-"reason": A brief explanation detailing why the response did or did not meet the criteria.
-"edited_prompt": A revised version of the worker prompt with suggestions for improvement.
-"query_for_user": A string containing the exact query you want to ask the user for further clarification.
-"ask_user?": Use "yes" if you want to ask the user for further clarification based on the worker’s response, or "no" if no further user clarification is needed.
-
-##Additional Guidelines:
--Ensure your response is entirely in valid JSON with the specified keys.
--Clearly indicate that you are interacting with the worker (Dana) who has generated the report data, and provide guidance for any improvements necessary.
--Keep in mind that your evaluation helps decide which responses are shown to the user programmatically based on the "satisfied" and "score" keys.
-
-###Extra Clarification Requirement: If the worker’s response indicates that additional information is needed—which can only be provided by the user—mark the response as "satisfied", set "ask_user?" to "yes", and use the "query_for_user" key to state exactly what further information is required from the user.
-
-###Manager-to-User Interaction: When necessary, do not assume or fabricate additional instructions for the worker agent. Instead, use the "query_for_user" key to state the query for the user, and set "ask_user?" to "yes" if you want the user to provide further clarification. Otherwise, set "ask_user?" to "no".
-
-##Important for chat flow : Fill the "ask_user?" with no if you are satisfied with the workers response.
-
-####Your worker agent has the data exclusively from the BRSR reports for the following companies:
-- BF UTILITIES LIMITED
-- Hindustan Construction Company Limited
-- HMT LIMITED
-- ITI LIMITED
-- LAURUS LABS LIMITED
-- NETWEB TECHNOLOGIES INDIA LIMITED
-- Network18 Media & Investments Limited
-- Persistent Systems Limited
-- Procter & Gamble Health Limited
-- Siemens Limited
-- Zee Entertainment Enterprises Limited
-
+director_system_prompt = """
+say this director speasking before you answer
+you have all the data you need to give the response in the Previous conversation between you and worker agent.
 """
 
 manager_system_prompt = """
-split the give question into parts and add them as a list in the 
-##Response Format:
+#Role - Role: ESG Specialist with 10 Years of Experience - (Manager Agent)
+
+##Keep in Mind:
+-split the give user query into sub-questions, so that the worker agent under you can answer each question.One at a time.
+-The worker agent has BRSR and Sustainability Report in the vector searchable Database.
+-Below is the contents of those reports, I need you to generate sub-questions accordingly.
+
+##companies in the Data-Base
+1.Hindustan Petroleum Corporation Limited(HPCL)
+2.Indian Oil Corporation Limited(IOCL)
+
+##BRSR report containts:
+### 1 Details of the Listed Entity
+-Corporate identity (CIN, name, year of incorporation)
+-Registered and corporate addresses, contact details, financial year, stock exchange listings, and paid‐up capital.
+
+### 2 Products/Services
+-Description of the main business activities and details of products/services sold (e.g., petroleum products, petrochemicals, and other energy-related segments).
+-Breakdown of turnover contribution by key product/service categories.
+
+### 3 Operations
+-Details on operational locations (number of plants and offices, both national and international)
+-Markets served including export contribution and a brief on customer segmentation (retail and bulk customers).
+
+### 4 Employees
+-Employee and worker statistics (permanent and non-permanent)
+-Diversity and grievance redressal mechanisms for staff.
+
+### 5 Holding, Subsidiary and Associate Companies (including Joint Ventures)
+-Lists of associated companies along with the percentage share held and details on whether they participate in IOCL’s business responsibility initiatives.
+
+### 6 CSR Details
+-Information on the applicability of CSR (per Companies Act 2013)
+-Turnover and net worth figures relevant to CSR considerations.
+
+### 7 Transparency and Disclosures Compliances
+-Grievance redressal mechanisms for various stakeholder groups (communities, investors, employees, customers, and value chain partners)
+-Data on the number of complaints filed and resolved, along with web links to grievance policies.
+
+### Additional Disclosures on Governance and Leadership
+-A director’s statement highlighting ESG challenges, targets, and sustainability initiatives (including decarbonisation efforts, transition to green energy, and community engagement).
+
+### General Disclosures
+-Provides the company’s core details (incorporation, addresses, financial year, stock exchange listings, paid‐up capital, etc.)
+-Outlines details on products/services, business activities, and operational information (such as plant locations and market reach).
+-Contains employee and operational statistics similar to IOCL’s disclosures.
+
+### Management and Process Disclosures
+-Describes the policies and procedures adopted to implement the company’s sustainability framework
+-Includes details of codes of conduct, whistleblower and grievance redressal policies, and stakeholder engagement mechanisms
+-Outlines the internal review processes and the assurance methodology (with an independent assurance statement provided by Bureau Veritas).
+
+### Principle Wise Performance Disclosure
+-The section details performance indicators, targets, and results for each principle, emphasizing how the company manages its sustainability impacts.
+
+### Independent Assurance Statement
+-Provides details on the assurance engagement (scope, methodology, and limitations) conducted by an external auditor (Bureau Veritas) to verify the sustainability disclosures.
+
+##Sustainability Report consist the following data :
+-Environmental Leadership
+-Strengthening Our Value Chain
+-Our Approach to Sustainability
+-Creating Shared Value for Our People
+-Empowered Leadership and Transparent Governance
+-Performance Summary 2023-24
+-Driving Progress Through Renewable Energy
+-Translating Green Ambitions into Reality
+-Revolutionizing the Green Fuels Landscape
+-Letter from the Chairman
+-Strengthening India's Energy Independence
+-Embracing Energy Transition
+-Fueling Sustainability with Innovation and Technology
+-Championing Environmental Sustainability
+-Women Empowerment
+-Empowering the Society
+-Building a Greener Tomorrow with Sustainable Practices
+-Supply Chain
+-Awards and Recognitions
+-Governance
+-Policies, Principles, and Practices
+-Board of Directors
+-Internal Control Systems and Mechanisms
+-Risk and Opportunities
+-Empowering Digital Transformation
+-Memberships, Affiliations, Collaboration, and Advocacy
+-Shaping the Future Responsibly
+-Future Readiness
+-Stakeholder Engagement
+-Matters Critical to Value Creation
+-Sustainability at HPCL
+-Strategic Environment Management for a Sustainable Future
+-Energy
+-GHG Emissions & Air Quality
+-Biodiversity
+-Research & Development
+-Water Management
+-Waste Management
+-Sustainability at HPCL’s Residential Complex
+-Manpower and Work Environment
+-People Management
+-Performance Management, Career Growth, and Progression
+-Nurturing Talent
+-Employee Engagement
+-Capacity Building through Training and Development
+-Industrial Harmony
+-Diversity and Equal Opportunity
+-Health and Safety
+-Safety Management
+-Safety in Transportation
+-Advancing Health and Well-being
+-Safety and Security of Critical Assets
+-Building Lasting Relationships
+-Customer Satisfaction
+-Quality Management Systems
+-Customer-centric Initiatives
+-Engaging with the Local Communities
+-Fostering Shared Prosperity
+-Lives Touched Through CSR Projects
+-Economic Performance
+-Focusing on Sustainable Returns
+-Alignment of Business Practices
+-Helping Achieve UN Sustainable Development Goals
+-India’s Nationally Determined Contributions (NDCs)
+-UNGC Principles
+-Task Force on Climate-related Financial Disclosures
+-Independent Assurance Statement
+-GRI Content Index
+-List of Abbreviations
+
+##Response Format in json
 Return your evaluation strictly in JSON format with the following keys:
+"list_of_sub_questions": A python list of sub-questions.
 
-"final_response": if you have conversation between you and worker agent, that means you have already contacted the worker agent and you have all sub-questions and the answers to create response for the user.
-"talked_to_worker?": use "yes" if you have the convertation history, else if you don't have any convertation with the worker agent say "no"
-"alternate_response": A response created with available data.
-
-"use_worker?":Use "yes" if you need worker's help, else if you already have the answer in Previous conversations between you and worker agent say "no"
-"number_of_sub_questions": The total number of the questions.
-"list_of_sub_questions": A python list of questions.
-
-
-"query_for_user": A string containing the exact query you want to ask the user for further clarification.
-"ask_user?": Use "yes" if you want to ask the user for further clarification based on the worker’s response, or "no" if no further user clarification is needed.
 """
+
 # Azure AI Search configuration
 azure_search_endpoint = os.getenv("AZURE_AI_SEARCH_ENDPOINT")
 azure_search_index = os.getenv("AZURE_AI_SEARCH_INDEX")
 azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
 
+def manager(
+    client,
+    deployment,
+    user_prompt,
+    provided_conversation_history,
+    max_iterations,
+    collection,
+    chat_history_retrieval_limit,
+    no_iterations,
+    context_chunks,
+    agents_conversation_id,
+):   
 
-def manager(client, deployment, user_prompt, provided_conversation_history, max_iterations, collection, chat_history_retrieval_limit, agents_conversation_id,internally):   
+    agents_conversation_id = str(uuid.uuid4())
+    agents_conversation_history = agents_conv_history(agents_conversation_id, collection, chat_history_retrieval_limit)
     
-    if agents_conversation_id is None:
-        agents_conversation_id = str(uuid.uuid4())
-        agents_conversation_history = agents_conv_history(agents_conversation_id, collection, chat_history_retrieval_limit)
-        
-        completion = client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": manager_system_prompt},
-                {"role": "user", "content": f"Previous conversation between user and you: {provided_conversation_history},\nMy question: {user_prompt}"},
-                {"role": "assistant", "content": f"Previous conversation between you and worker agent: {agents_conversation_history}"}
-            ],
-            max_tokens=800,
-            temperature=0.7,
-            top_p=0.95,
-            frequency_penalty=0,
-            presence_penalty=0,
-            stop=None
-        )
+    completion = client.chat.completions.create(
+        model=deployment,
+        messages=[
+            {"role": "system", "content": manager_system_prompt},
+            {"role": "user", "content": f"Previous conversation between user and you: {provided_conversation_history},\nMy question: {user_prompt}"},
+        ],
+        max_tokens=800,
+        temperature=0.7,
+        top_p=0.95,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=None
+    )
 
-        manager_json_output = completion.choices[0].message.content
-        #print(f"manager op : {manager_json_output}")
+    manager_json_output = completion.choices[0].message.content
 
-        if "```" in manager_json_output:
-            manager_json_output = manager_json_output.replace("```json","")
-            manager_json_output = manager_json_output.replace("```","")
+    if "```" in manager_json_output:
+        manager_json_output = manager_json_output.replace("```json","")
+        manager_json_output = manager_json_output.replace("```","")
+    agent_response = json.loads(manager_json_output) # Parse the JSON response ecplicitly asked
+    list_of_sub_questions =agent_response["list_of_sub_questions"]
+    print("============================")
+    
+    print(list_of_sub_questions)
+    print("============================")
 
-        agent_response = json.loads(manager_json_output) # Parse the JSON response ecplicitly asked
-        ask_user = agent_response["ask_user?"]
+    context_chunks = []
+    i = 0
+    for sub_question in list_of_sub_questions:
+        i += 1
 
-        use_worker = agent_response["use_worker?"]
-        number_of_sub_questions = agent_response["number_of_sub_questions"]
-        list_of_sub_questions =agent_response["list_of_sub_questions"]
-        final_response = agent_response["final_response"]
+        worker_response, context_chunk =  worker(client, deployment, sub_question, agents_conversation_history, azure_search_endpoint, azure_search_index, azure_search_api_key)
+        inserting_agent_chat_buffer(agents_conversation_id, collection, sub_question, worker_response, context_chunks)# chuncks used by worker agent
 
-        print(f"wanna contact user?{ask_user}")
+        context_chunks.append(context_chunk)
+        print(f"{i}th iteration")
 
-        if use_worker == "yes":
-            context_chunks = []
-            for i in range(number_of_sub_questions):
-                worker_response,context_chunk =  worker(client, deployment, list_of_sub_questions[i], agents_conversation_history, azure_search_endpoint, azure_search_index, azure_search_api_key)
-                inserting_agent_chat_buffer(agents_conversation_id, collection, list_of_sub_questions[i], worker_response, context_chunks)# chuncks used by worker agent
-                
-                context_chunks.append(context_chunk)
-                print(f"{i}th iteration")
+        # if i == max_iterations:
+        #     print("THE ITERATION ENDED BECAUSE : Max iterations reached")
+        #     break
+    no_iterations = i
+    direcotr_response = director(
+        client,
+        deployment,
+        user_prompt,
+        provided_conversation_history, 
+        max_iterations,
+        collection,
+        chat_history_retrieval_limit,
+        no_iterations,
+        context_chunks,
+        agents_conversation_id,
+    )
+    return direcotr_response, no_iterations, context_chunks
 
-                if i == max_iterations:
-                    print("THE ITERATION ENDED BECAUSE : Max iterations reached")
-                    break
-            
-            final_response =  manager(client, deployment, user_prompt, provided_conversation_history, max_iterations, collection, chat_history_retrieval_limit,agents_conversation_id, internally=True)
-            return final_response , i, context_chunks
+def director(
+    client,
+    deployment,
+    user_prompt,
+    provided_conversation_history,
+    max_iterations,
+    collection,
+    chat_history_retrieval_limit,
+    no_iterations,
+    context_chunks,
+    agents_conversation_id,
+):
 
-        elif ask_user == "yes":
-            final_response = agent_response["query_for_user"]
-            return final_response, 0 , context_chunks
-    else:
-        agents_conversation_history = agents_conv_history(agents_conversation_id, collection, chat_history_retrieval_limit)
-        completion = client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": manager_system_prompt},
-                {"role": "user", "content": f"Previous conversation between user and you: {provided_conversation_history},\nMy question: {user_prompt}"},
-                {"role": "assistant", "content": f"Previous conversation between you and worker agent: {agents_conversation_history}"}
-            ],
-            max_tokens=800,
-            temperature=0.7,
-            top_p=0.95,
-            frequency_penalty=0,
-            presence_penalty=0,
-            stop=None
-        )
+    agents_conversation_history = agents_conv_history(agents_conversation_id, collection, chat_history_retrieval_limit)
+    completion = client.chat.completions.create(
+        model=deployment,
+        messages=[
+            {"role": "system", "content": director_system_prompt},
+            {"role": "user", "content": f"Previous conversation between user and you: {provided_conversation_history},\nMy question: {user_prompt}"},
+            {"role": "assistant", "content": f"Previous conversation between you and worker agent: {agents_conversation_history}"}
+        ],
+        max_tokens=800,
+        temperature=0.7,
+        top_p=0.95,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=None
+    )
 
-        manager_json_output = completion.choices[0].message.content
-        #print(f"manager op : {manager_json_output}")
-
-        if "```" in manager_json_output:
-            manager_json_output = manager_json_output.replace("```json","")
-            manager_json_output = manager_json_output.replace("```","")
-
-        agent_response = json.loads(manager_json_output) # Parse the JSON response ecplicitly asked
-        #print(f"agent_decision =------------={agent_decision}")
-
-        ask_user = agent_response["ask_user?"]
-
-        use_worker = agent_response["use_worker?"]
-        number_of_sub_questions = agent_response["number_of_sub_questions"]
-        list_of_sub_questions =agent_response["list_of_sub_questions"]
-        talked_to_worker = agent_response["talked_to_worker?"]
-
-        print(f"wanna contact user?{ask_user}")
-
-        if use_worker =="no":
-            final_response = agent_response["final_response"]
-            return final_response
-
-        if talked_to_worker == "yes":
-            alternate_response = agent_response["alternate_response"]
-            return alternate_response
-        
-        elif talked_to_worker == "no":
-            for i in range(number_of_sub_questions):
-                worker_response,context_chunks =  worker(client, deployment, list_of_sub_questions[i], agents_conversation_history, azure_search_endpoint, azure_search_index, azure_search_api_key)
-                inserting_agent_chat_buffer(agents_conversation_id, collection, list_of_sub_questions[i], worker_response, context_chunks)# chuncks used by worker agent
-                
-                print(f"{i}th iteration")
-
-                if i == 5:
-                    print("THE ITERATION ENDED BECAUSE : Max iterations reached")
-                    break
-            
-            manager(client, deployment, user_prompt, provided_conversation_history, max_iterations, collection, chat_history_retrieval_limit,agents_conversation_id, internally=True)
-            return 
-
-        
+    direcotr_response = completion.choices[0].message.content
+    return direcotr_response
 
 
-
-# from openai import AzureOpenAI
-# from consertation_context import conv_history
-# from pymongo import MongoClient
-
-# user_prompt = "How robust is the company’s ESG governance framework, and how is board oversight structured to ensure accountability for ESG risks and opportunities?"
-
-# connection_string = "mongodb://chat-history-with-cosmos:aWQkNybTHAZ4ZHgYXGNb4E2VDQ2BGP8k0WYyGPuziM4D5TayG2Pf5fnxFSD8Y3nI6wmXJvph3In1ACDbKj2jRQ==@chat-history-with-cosmos.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@chat-history-with-cosmos@"
-# mongo_client = MongoClient(connection_string)
-# db = mongo_client["ChatHistoryDatabase"]
-# collection = db["chat-history-with-cosmos"]
-# chat_history_retrieval_limit = 10
-
-# conversation_id = "10deef48-464e-4987-9f1e-448383e3cbfb"
-
-# endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-# deployment = os.getenv("AZURE_OPENAI_DEPLOYED_NAME")
-# api_key = os.getenv("AZURE_OPENAI_KEY")
-
-# client =  AzureOpenAI(
-#     api_key=api_key,
-#     azure_endpoint=endpoint,
-#     api_version="2024-05-01-preview",
-# )
-
-# #provided_conversation_history = conv_history(conversation_id, collection, chat_history_retrieval_limit)
-# provided_conversation_history = []
-# manager(client, deployment, user_prompt, provided_conversation_history, max_iterations=2)

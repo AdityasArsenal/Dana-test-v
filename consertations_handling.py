@@ -56,9 +56,9 @@ def monolog(provided_conversation_history):
     print("*****************************************************************************")
     c=0
     for i in provided_conversation_history:
-        if i['role'] == 'manager_agent_prompt':
+        if i['role'] == 'manager_agent':
             prefix = "⚪" 
-        elif i['role'] == 'worker_response_score':
+        elif i['role'] == 'worker_agent':
             prefix = "🟡"
         else:
             prefix = "⚫"
