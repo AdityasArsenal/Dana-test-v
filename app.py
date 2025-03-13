@@ -64,3 +64,7 @@ def chat(request: ChatRequest):
         "references": reference_points,
         "conversation_id": conversation_id
     }
+
+@app.get("/")
+def home():
+    return {"message": "Hello, World!"}
