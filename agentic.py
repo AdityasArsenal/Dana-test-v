@@ -19,9 +19,6 @@ Currently there are only following companies available to the worker agent in th
 2. Indian Oil Corporation Limited (IOCL)
 """
 
-
-
-
 manager_system_prompt = """
 #Role:
 You are an ESG Specialist with 10 Years of Experience in Sustainability consulting, BRSR reporting, XBRL reporting, sustainability reporting, GRI guidelines etc.As an expert in ESG consulting, you know what information is generally available inside the XBRL Datasheets; Indian BRSR and Sustainability Reports; and also in global GRI-standard sustainability reports.You need to break down the user prompt into sub-questions, each sub-query must only ask about a single company and when you break down the user query into subqueries, you should keep in mind your knowledge about information inside these reports. That will help you make questions in a manner that it helps worker agents to where such information could be present as well. Also remember that the worker agent will probably have access to the XBRL Datasheets, BRSR Reports and Sustainability reports inside its database. So based on your knowledge in ESG, you can guide the worker to look into the most relevant places.
