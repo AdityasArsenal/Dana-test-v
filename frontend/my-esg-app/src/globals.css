@@ -3,6 +3,18 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #ff5722;
+  /* Orange primary color */
+  --primary-foreground: #ffffff;
+  --secondary: #1e1e1e;
+  /* Dark secondary color */
+  --secondary-foreground: #ffffff;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
 }
 
 @theme inline {
@@ -14,13 +26,31 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000;
-    --foreground: #e9e3e3;
+    --background: #121212;
+    --foreground: #f9fafb;
+    --primary: #ff5722;
+    /* Orange primary color */
+    --primary-foreground: #ffffff;
+    --secondary: #2d2d2d;
+    --secondary-foreground: #ffffff;
+    --card: #1e1e1e;
+    --card-foreground: #f9fafb;
+    --muted: #2d2d2d;
+    --muted-foreground: #9ca3af;
+    --border: #374151;
+    --input: #374151;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+.gradient-text {
+  background: linear-gradient(to right, #ff5722, #ff9800);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

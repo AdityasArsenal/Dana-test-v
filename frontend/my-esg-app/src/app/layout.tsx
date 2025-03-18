@@ -32,3 +32,41 @@ export default function RootLayout({
     </html>
   );
 }
+
+
+//Grok
+
+// import type { Metadata } from "next";
+// import { Inter, Roboto_Mono } from "next/font/google"; // Use Inter and Roboto_Mono
+// import "../globals.css";
+
+// const inter = Inter({
+//   variable: "--font-inter",
+//   subsets: ["latin"],
+// });
+
+// const robotoMono = Roboto_Mono({
+//   variable: "--font-roboto-mono",
+//   subsets: ["latin"],
+// });
+
+// export const metadata: Metadata = {
+//   title: "ESG Consultant Companion",
+//   description: "Your AI-powered ESG advisor providing actionable insights.",
+// };
+
+// export default function RootLayout({
+//   children,
+// }: Readonly<{
+//   children: React.ReactNode;
+// }>) {
+//   return (
+//     <html lang="en">
+//       <body
+//         className={`${inter.variable} ${robotoMono.variable} antialiased`}
+//       >
+//         {children}
+//       </body>
+//     </html>
+//   );
+// }
