@@ -8,9 +8,9 @@ from openai import AzureOpenAI
 import os
 import uvicorn
 
-from consertations_handling import conv_history, inserting_chat_buffer, agents_conv_history
+from conv_handleing import conv_history, inserting_chat_buffer, agents_conv_history
 from agentic import manager
-from r import conversation_to_pdf
+from conv_to_pdf import conversation_to_pdf
 
 load_dotenv(override=False)
 app = FastAPI()
