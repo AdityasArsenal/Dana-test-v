@@ -44,3 +44,21 @@ if user_input:
         st.error(f"Error: {response.status_code} - {response.text}")
     
     st.rerun()
+
+
+#Auth
+
+# from streamlit_supabase_auth_ui.widgets import __login__
+
+# __login__obj = __login__(auth_token = st.secrets["courier_auth_token"],
+#                     company_name = "Shims",
+#                     width = 200, height = 250,
+#                     logout_button_name = 'Logout', hide_menu_bool = False,
+#                     hide_footer_bool = False,
+#                     lottie_url = 'https://assets2.lottiefiles.com/packages/lf20_jcikwtux.json')
+
+# LOGGED_IN = __login__obj.build_login_ui()
+
+# if LOGGED_IN == True:
+
+#    st.markdown("### Your Streamlit Application Begins here!")
