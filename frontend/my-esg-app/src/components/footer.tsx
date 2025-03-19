@@ -2,8 +2,8 @@ import Link from "next/link"
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border/40 bg-secondary/5">
-      <div className="container py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="border-t border-border/40 bg-secondary/5 w-full">
+      <div className="container mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center shadow-md">
@@ -48,7 +48,7 @@ export default function Footer() {
         </div>
       </div>
       
-      <div className="container py-6 border-t border-border/40 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="container mx-auto px-4 py-6 border-t border-border/40 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="text-sm text-muted-foreground">© 2025 ESG Consultant Companion. All rights reserved.</div>
         <div className="flex items-center gap-4">
           <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">

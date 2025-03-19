@@ -21,7 +21,6 @@ Currently there are only following companies available to the worker agent in th
 1. Hindustan Petroleum Corporation Limited (HPCL)
 2. Indian Oil Corporation Limited (IOCL)
 
-and brfore responding say direcort speaking
 """
 
 manager_system_prompt = f"""
