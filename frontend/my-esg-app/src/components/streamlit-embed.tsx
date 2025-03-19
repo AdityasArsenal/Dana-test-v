@@ -10,7 +10,7 @@ export default function StreamlitEmbed() {
   useEffect(() => {
     // Set the URL after a short delay to ensure component is fully mounted
     const timer = setTimeout(() => {
-      setStreamlitUrl("http://localhost:8501/")
+      setStreamlitUrl(process.env.NEXT_PUBLIC_STREAMLIT_URL || "http://localhost:8501")
       // Force a rerender after setting the URL
       setIsLoading(true)
       

@@ -31,14 +31,14 @@ export default function Home() {
               Your Intelligent <span className="gradient-text">ESG Consultant</span> Companion
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto md:mx-0">
-              Transform your sustainability strategy with AI-powered insights tailored to your organization's needs.
+              Transform your sustainability strategy with AI-powered insights tailored to {"Your organization&apos;s needs"}
             </p>
             <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-4 pt-4">
               <Button size="lg" className="shadow-orange-500/20 shadow-lg">
                 Start Consulting Now
               </Button>
               <Button size="lg" variant="outline">
-                View Demo
+                View Demoo
               </Button>
             </div>
           </div>
@@ -130,7 +130,7 @@ export default function Home() {
             <div className="relative z-10">
               <h2 className="text-3xl font-bold mb-4">Ready to Transform Your ESG Strategy?</h2>
               <p className="text-lg mb-8 max-w-2xl mx-auto">
-                Join thousands of organizations using our AI consultant to improve their sustainability metrics and reporting.
+                {"Join thousands of organizations using our AI consultant"}
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Button size="lg" className="shadow-orange-500/20 shadow-lg">Get Started</Button>
