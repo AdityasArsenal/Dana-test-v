@@ -1,5 +1,6 @@
 import React from 'react';
 import { Brain, Database, LineChart, Search, Users, Bot, ArrowRight, Building2, ChevronRight, Github, Twitter, Linkedin, Mail } from 'lucide-react';
+import ChatInterface from './components/ChatInterface';
 
 function App() {
   return (
@@ -44,9 +45,9 @@ function App() {
               <button className="bg-emerald-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-emerald-700 transition duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-emerald-200">
                 Join Our Vision <ArrowRight className="w-5 h-5" />
               </button>
-              <button className="bg-white text-gray-800 px-8 py-4 rounded-xl font-semibold hover:bg-gray-50 transition duration-300 transform hover:scale-105 flex items-center justify-center gap-2 border border-gray-200">
-                Watch Demo <ChevronRight className="w-5 h-5" />
-              </button>
+              <a href="#demo" className="bg-white text-gray-800 px-8 py-4 rounded-xl font-semibold hover:bg-gray-50 transition duration-300 transform hover:scale-105 flex items-center justify-center gap-2 border border-gray-200">
+                Try Demo <ChevronRight className="w-5 h-5" />
+              </a>
             </div>
           </div>
         </div>
@@ -205,46 +206,37 @@ function App() {
         </div>
       </div>
 
-      {/* Example Query Section */}
+      {/* Example Query Section - UPDATED DEMO SECTION */}
       <div id="demo" className="py-24 bg-gray-50 scroll-mt-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 relative inline-block">
-                Early Results
+                Try Our ESG Analysis AI
                 <span className="absolute bottom-0 left-0 w-full h-1 bg-emerald-600/30 transform -skew-x-12"></span>
               </h2>
               <p className="text-gray-600 text-lg">
-                Our prototype demonstrates promising capabilities in processing complex ESG queries
+                Experience our prototype AI system that can analyze and compare ESG reports from Indian companies
               </p>
             </div>
-            <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition duration-300">
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                      <Users className="w-4 h-4 text-gray-600" />
-                    </div>
-                    <p className="text-lg font-medium text-gray-900">Sample Research Query</p>
-                  </div>
-                  <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                    "What are the differences between materiality assessment of HPCL and IOCL?"
-                  </div>
+            
+            {/* Chat Interface */}
+            <ChatInterface />
+            
+            <div className="mt-8 bg-emerald-50 p-6 rounded-xl border border-emerald-100">
+              <h3 className="text-xl font-semibold mb-3 text-emerald-800">Suggested Queries</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-lg border border-emerald-100 hover:border-emerald-300 transition cursor-pointer">
+                  "What are the key ESG metrics reported by Reliance Industries?"
                 </div>
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                      <Bot className="w-4 h-4 text-emerald-600" />
-                    </div>
-                    <p className="text-lg font-medium text-gray-900">Prototype Response</p>
-                  </div>
-                  <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-100">
-                    <p className="text-gray-700 leading-relaxed">
-                      Our AI system successfully analyzed the BRSR reports and sustainability documents, identifying key 
-                      differences in how these companies approach materiality assessment. This demonstrates the potential 
-                      for automated comparative analysis in ESG reporting.
-                    </p>
-                  </div>
+                <div className="bg-white p-4 rounded-lg border border-emerald-100 hover:border-emerald-300 transition cursor-pointer">
+                  "Compare the carbon emission reduction targets of Tata Steel and JSW Steel"
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-emerald-100 hover:border-emerald-300 transition cursor-pointer">
+                  "What materiality assessment process does HDFC Bank follow?"
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-emerald-100 hover:border-emerald-300 transition cursor-pointer">
+                  "Summarize Infosys's approach to diversity and inclusion"
                 </div>
               </div>
             </div>
