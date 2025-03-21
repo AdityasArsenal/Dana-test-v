@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # Backend URL
-WEBHOOK_URL = "http://localhost:8000/chat"
+WEBHOOK_URL = "https://dana-test-v.onrender.com/chat"
 
 # Initialize session state if not already present
 if "messages" not in st.session_state:
