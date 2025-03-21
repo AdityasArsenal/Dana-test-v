@@ -99,34 +99,34 @@ def manager(
     conversation_id
 ):   
     
-    # agents_conversation_id = str(uuid.uuid4())
+    agents_conversation_id = str(uuid.uuid4())
 
-    # list_of_sub_questions = ["wt is","why it is","how it is"]
-    # agents_conversation_history = ""
-    # all_context_chunks = []
-    # i = 0
+    list_of_sub_questions = ["wt is","why it is","how it is"]
+    agents_conversation_history = ""
+    all_context_chunks = []
+    i = 0
 
-    # for sub_question in list_of_sub_questions:
-    #     i += 1
-    #     worker_response, context_chunks =  worker(client, deployment, sub_question, agents_conversation_history, azure_search_endpoint, azure_search_index, azure_search_api_key)
-    #     inserting_agent_chat_buffer(agents_conversation_id, conversation_id, connection, sub_question, worker_response, context_chunks)# chuncks used by worker agent
+    for sub_question in list_of_sub_questions:
+        i += 1
+        worker_response, context_chunks =  worker(client, deployment, sub_question, agents_conversation_history, azure_search_endpoint, azure_search_index, azure_search_api_key)
+        inserting_agent_chat_buffer(agents_conversation_id, conversation_id, connection, sub_question, worker_response, context_chunks)# chuncks used by worker agent
 
-    #     all_context_chunks.extend(context_chunks)
-    #     print(f"{i}th {sub_question}")
+        all_context_chunks.extend(context_chunks)
+        print(f"{i}th {sub_question}")
     
-    # direcotr_response = "director responded"
-    # no_iterations = i
-    # context_chunks = ""
+    direcotr_response = "director responded"
+    no_iterations = i
+    context_chunks = ""
 
-    # agents_conversation_history = agents_conv_history(agents_conversation_id, connection, chat_history_retrieval_limit)
-    # agents_total_conversation_history = agents_total_conv_history(conversation_id, connection, chat_history_retrieval_limit)
+    agents_conversation_history = agents_conv_history(agents_conversation_id, connection, chat_history_retrieval_limit)
+    agents_total_conversation_history = agents_total_conv_history(conversation_id, connection, chat_history_retrieval_limit)
     
-    # pdf_path = conversation_to_pdf(agents_total_conversation_history)
-    # conv_pdf_url = upload_pdf_to_blob(pdf_path, container_name, connection_string)
+    pdf_path = conversation_to_pdf(agents_total_conversation_history, direcotr_response)
+    conv_pdf_url = upload_pdf_to_blob(pdf_path, container_name, connection_string)
 
-    # os.remove(pdf_path) 
-    # print(f"and here it is : {conv_pdf_url}")
-    # return direcotr_response, no_iterations, context_chunks, conv_pdf_url
+    os.remove(pdf_path) 
+    print(f"and here it is : {conv_pdf_url}")
+    return direcotr_response, no_iterations, context_chunks, conv_pdf_url
 
     print("MMMMMMM")
     agents_conversation_id = str(uuid.uuid4())

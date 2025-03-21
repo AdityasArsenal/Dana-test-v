@@ -105,7 +105,7 @@ def conversation_to_pdf(conversation_history, direcotr_response,output_dir="conv
     
     # Symmary (director response)
     story.append(Paragraph("Summary", question_style))
-    final_formatted_answer = markdown_to_reportlab(pair['answer'])
+    final_formatted_answer = markdown_to_reportlab(direcotr_response)
     story.append(Paragraph(final_formatted_answer, answer_style))
     story.append(Spacer(1, 0.2*inch))
     
